@@ -1,6 +1,6 @@
 
 #!/bin/bash
-echo "Welcome to Simple Calculator"
+
 
 read -p "Enter value for num1: " num1
 

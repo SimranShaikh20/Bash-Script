@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "Welcome to Simple Calculator"
+echo "Welcome to Calculator"
 
 read -p "Enter value for num1: " num1
 

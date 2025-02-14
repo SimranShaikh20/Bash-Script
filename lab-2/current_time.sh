@@ -1,8 +1,5 @@
 #!/bin/bash
+echo "Current Date and Time Program"
 
-# Get the current date in words
-current_date=$(date +"%A, %B %d, %Y")
-
-# Display the current date
-echo "Current Date: $current_date"
+echo "Current Date and Time is :$(date)"
 

@@ -1,74 +1,77 @@
 import threading
 
-# Sample Sudoku puzzle (valid solution)
+# Define Sudoku Grid
 sudoku = [
     [5, 3, 4, 6, 7, 8, 9, 1, 2],
     [6, 7, 2, 1, 9, 5, 3, 4, 8],
     [1, 9, 8, 3, 4, 2, 5, 6, 7],
     [8, 5, 9, 7, 6, 1, 4, 2, 3],
     [4, 2, 6, 8, 5, 3, 7, 9, 1],
-    [7, 1, 3, 9, 2, 4, 3, 5, 6],
+    [7, 1, 3, 9, 2, 4, 8, 5, 6],
     [9, 6, 1, 5, 3, 7, 2, 8, 4],
     [2, 8, 7, 4, 1, 9, 6, 3, 5],
     [3, 4, 5, 2, 8, 6, 1, 7, 9]
 ]
 
-# Shared list to store validation results (1 = valid, 0 = invalid)
-validity = [0] * 11
+# Global list to store validation results
+valid = [False] * 11
 
-# Function to check if a list contains digits 1-9 exactly once
-def is_valid(lst):
-    return sorted(lst) == list(range(1, 10))
-
-# Thread function to validate rows
-def check_rows():
+def check_row():
+    """Checks if all rows contain digits 1-9 exactly once"""
     for row in sudoku:
-        if not is_valid(row):
-            return  # Invalid row found
-    validity[0] = 1  # Mark rows as valid
+        if sorted(row) != list(range(1, 10)):  # Must contain 1-9 exactly once
+            return
+    valid[0] = True
 
-# Thread function to validate columns
-def check_columns():
-    for col in zip(*sudoku):
-        if not is_valid(col):
-            return  # Invalid column found
-    validity[1] = 1  # Mark columns as valid
+def check_column():
+    """Checks if all columns contain digits 1-9 exactly once"""
+    for col in range(9):
+        column_values = [sudoku[row][col] for row in range(9)]
+        if sorted(column_values) != list(range(1, 10)):
+            return
+    valid[1] = True
 
-# Thread function to validate a 3x3 subgrid
 def check_subgrid(start_row, start_col, index):
-    subgrid = [
-        sudoku[r][c] for r in range(start_row, start_row + 3)
-        for c in range(start_col, start_col + 3)
-    ]
-    if is_valid(subgrid):
-        validity[index] = 1  # Mark subgrid as valid
+    """Checks if a 3x3 subgrid contains digits 1-9 exactly once"""
+    subgrid = []
+    for i in range(3):
+        for j in range(3):
+            subgrid.append(sudoku[start_row + i][start_col + j])
+    if sorted(subgrid) == list(range(1, 10)):
+        valid[index] = True
 
-# Create and start threads
-threads = []
+def main():
+    threads = []
 
-# Row and column validation threads
-t1 = threading.Thread(target=check_rows)
-t2 = threading.Thread(target=check_columns)
-threads.extend([t1, t2])
+    # Create thread for checking rows
+    row_thread = threading.Thread(target=check_row)
+    threads.append(row_thread)
 
-# Subgrid validation threads (9 subgrids)
-index = 2  # Index in validity list
-for i in range(0, 9, 3):
-    for j in range(0, 9, 3):
-        t = threading.Thread(target=check_subgrid, args=(i, j, index))
-        threads.append(t)
-        index += 1
+    # Create thread for checking columns
+    col_thread = threading.Thread(target=check_column)
+    threads.append(col_thread)
 
-# Start all threads
-for t in threads:
-    t.start()
+    # Create threads for checking 3x3 subgrids
+    index = 2  # Start storing subgrid results from valid[2]
+    for i in range(0, 9, 3):
+        for j in range(0, 9, 3):
+            subgrid_thread = threading.Thread(target=check_subgrid, args=(i, j, index))
+            threads.append(subgrid_thread)
+            index += 1
 
-# Wait for all threads to finish
-for t in threads:
-    t.join()
+    # Start all threads
+    for thread in threads:
+        thread.start()
 
-# Final validation
-if all(validity):
-    print("The Sudoku solution is VALID!")
-else:
-    print("The Sudoku solution is INVALID!")
+    # Wait for all threads to complete
+    for thread in threads:
+        thread.join()
+
+    # Check if all validations passed
+    if all(valid):
+        print("The Sudoku solution is valid!")
+    else:
+        print("The Sudoku solution is invalid!")
+
+if __name__ == "__main__":
+    main()
